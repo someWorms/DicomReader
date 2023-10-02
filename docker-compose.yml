@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:3-management
+    networks:
+        - common_network
+
+  sqlserver:
+    container_name: sqlserver
+    hostname: sqlserver
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+        ACCEPT_EULA: Y
+        SA_PASSWORD: "12SccS4@56dfvV@43f"
+    networks:
+        - common_network
+
+
+
+  dicomreader.api:
+    image: ${DOCKER_REGISTRY-}readerapi
+    build:
+      context: .w
+      dockerfile: DicomReaderAPI/Dockerfile
+    depends_on:
+        - rabbitmq
+    networks:
+        - common_network
+
+  dicomstorage.api:
+    image: ${DOCKER_REGISTRY-}storageapi
+    build:
+      context: .
+      dockerfile: DicomStorageAPI/Dockerfile
+    depends_on:
+        - rabbitmq
+        - sqlserver
+    networks:
+        - common_network
+
+networks:
+    common_network:
+        driver: bridge
